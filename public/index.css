@@ -1,0 +1,9 @@
+body {
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 0 20px;
+}
+
+.demo {
+  border: 2px dashed rgba(0, 0, 0, 0.05);
+}

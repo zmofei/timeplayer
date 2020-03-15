@@ -1,0 +1,34 @@
+{
+  "name": "timeplayer",
+  "version": "0.0.1",
+  "description": "A time player/travel module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack-dev-server --open"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zmofei/timeplayer.git"
+  },
+  "keywords": [
+    "time",
+    "player",
+    "travel"
+  ],
+  "author": "mofei zhu (https://zhuwenlong.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zmofei/timeplayer/issues"
+  },
+  "homepage": "https://github.com/zmofei/timeplayer#readme",
+  "devDependencies": {
+    "copy-webpack-plugin": "^5.1.1",
+    "html-webpack-plugin": "^3.2.0",
+    "ts-loader": "^6.2.1",
+    "typescript": "^3.8.3",
+    "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
+  }
+}
