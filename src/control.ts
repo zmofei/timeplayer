@@ -4,10 +4,29 @@ const btnsSVG = {
     pause: '<svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6307" width="16" height="16"><path d="M352 768c-17.664 0-32-14.304-32-32L320 288c0-17.664 14.336-32 32-32s32 14.336 32 32l0 448C384 753.696 369.664 768 352 768z" p-id="6308"></path><path d="M672 768c-17.696 0-32-14.304-32-32L640 288c0-17.664 14.304-32 32-32s32 14.336 32 32l0 448C704 753.696 689.696 768 672 768z" p-id="6309"></path></svg>'
 }
 
+const colors = {
+    controlBtn: '#000'
+}
+
 
 class Control {
     dom: HTMLElement;
     speed: number;
+    controlid: string;
+    state: number; // 0: stop 1: play
+    speedMax: number;
+    speedMin: number;
+    step: number;
+    numberFix: number;
+    value: number;
+    valueMin: number;
+    valueMax: number;
+    allowLoop: boolean;
+    interval: number;
+    onChange: Function;
+    colors: {
+        [key: string]: string
+    }
     private control: {
         forward: HTMLElement;
         backward: HTMLElement;
@@ -19,16 +38,35 @@ class Control {
         down: HTMLElement;
         speed: HTMLElement;
     }
-    constructor() {
-        this.speed = 1.0;
+    constructor(options: any) {
+        const {
+            speed = 1.0, speedMax = 10, speedMin = 0.1, value = 0, valueMax = 10, valueMin = 0, allowLoop = true, step = 0.1,
+        } = options;
+        this.colors = Object.assign(colors, options.colors || {});
+        this.speed = speed;
+        this.speedMax = speedMax;
+        this.speedMin = speedMin;
+        this.value = value;
+        this.valueMax = valueMax;
+        this.valueMin = valueMin;
+        this.allowLoop = allowLoop;
+        this.step = step;
+        options.onChange && (this.onChange = options.onChange);
+
+        this.speedMin = Math.max(this.speedMin, 0.1);
+
+        this.state = 0;
+
+        this.numberFix = this.step < 1 ? (this.step.toString().length - 2) : 0;
+        this.controlid = `control_${+new Date()}`
 
         this.initDom();
-
+        this.initEvent();
         this.draw();
     }
 
-    private initDom() {
-        const controlid = `control_${+new Date()}`
+    private setCSS() {
+        const { controlid } = this;
         const style = document.createElement('style');
         style.type = 'text/css';
         style.innerHTML = `
@@ -37,11 +75,6 @@ class Control {
             line-height: 20px;
             font-size: 10px;
             text-align: center;
-        }
-        .${controlid} svg {
-            vertical-align: middle;
-            height: 16px;
-            width: 16px;
         }
         .${controlid} span {
             cursor: pointer;
@@ -57,12 +90,27 @@ class Control {
         }
         .${controlid} span svg {
             float: left;
+            height: 16px;
+            width: 16px;
+            fill: ${this.colors.controlBtn}
         }
-        .${controlid} .space{
+        .${controlid} .space {
             width: 1px;
             overflow: hidden;
             margin: 0 3px;
-            background: #eee;
+            border-right: 1px solid #eee;
+        }
+        .${controlid} .play {
+            border: 1px solid ${this.colors.controlBtn};
+            width: 14px;
+            height: 14px;
+            border-radius: 100px;
+        }
+        .${controlid} .pause {
+            border: 1px solid transparent;
+            width: 16px;
+            height: 16px;
+            margin: 0 -1px;
         }
         .${controlid} .previous svg,
         .${controlid} .forward svg { 
@@ -74,18 +122,24 @@ class Control {
         .${controlid} .down svg { 
             transform: rotate(90deg);
         }
-        .${controlid} .play {
-            border: 1px solid #000;
-            width: 14px;
-            height: 14px;
-            border-radius: 100px;
-        }
         .${controlid} .play svg {
             width: 12px;
             height: 12px;
         }
+        .${controlid} .speed {
+            user-select: none;
+            width: auto;
+            color: ${this.colors.controlBtn}
+        }
+        
         `
         document.head.appendChild(style);
+    }
+
+    private initDom() {
+        const controlid = this.controlid;
+
+        this.setCSS();
 
         const btns = ['backward', 'previous', 'play', 'pause', 'next', 'forward', 'space', 'up', 'speed', 'down'];
         const btnSVGs = ['forward', 'next', 'next', 'pause', 'next', 'forward', '', 'next', '', 'next'];
@@ -113,9 +167,114 @@ class Control {
         this.dom = control;
     }
 
-    private draw() {
-        const { control } = this;
-        control.speed.innerText = this.speed.toFixed(1);
+    private initEvent() {
+        const { control, speedMax, speedMin, step } = this;
+        control.up.addEventListener('click', () => {
+            this.speed += step;
+            this.speed = Math.min(speedMax, this.speed);
+            this.state = 0;
+            this.draw();
+        });
+
+        control.down.addEventListener('click', () => {
+            this.speed -= step;
+            this.speed = Math.max(speedMin, this.speed);
+            this.state = 0;
+            this.draw();
+        });
+
+        control.next.addEventListener('click', () => {
+            this.value += 1;
+            this.value = Math.min(this.value, this.valueMax);
+            this.state = 0;
+            this.draw(true);
+        });
+
+        control.previous.addEventListener('click', () => {
+            this.value -= 1;
+            this.state = 0;
+            this.value = Math.max(this.value, this.valueMin);
+            this.draw(true);
+        });
+
+
+        control.backward.addEventListener('click', () => {
+            this.value = this.valueMin;
+            this.state = 0;
+            this.draw(true);
+        });
+
+        control.forward.addEventListener('click', () => {
+            this.value = this.valueMax;
+            this.state = 0;
+            this.draw(true);
+        });
+
+
+        control.play.addEventListener('click', () => {
+            this.state = 1;
+            window.clearInterval(this.interval);
+            this.interval = window.setInterval(() => {
+                this.value += 1;
+                if (this.value > this.valueMax) {
+                    if (this.allowLoop) {
+                        this.value = this.valueMin;
+                    } else {
+                        this.state = 0;
+                        window.clearInterval(this.interval);
+                    }
+                }
+                this.draw(true);
+            }, this.speed * 1000);
+        });
+
+        control.pause.addEventListener('click', () => {
+            this.state = 0;
+            window.clearInterval(this.interval);
+            this.draw();
+        });
+    }
+
+
+    private draw(isUpdate = false) {
+
+        const { control, state, numberFix, value, valueMin, valueMax, speed, speedMin, speedMax } = this;
+        control.speed.innerText = speed.toFixed(numberFix);
+
+        if (state === 0) {
+            control.pause.style.display = 'none';
+            control.play.style.display = 'inline-block';
+            window.clearInterval(this.interval);
+        } else {
+            control.pause.style.display = 'inline-block';
+            control.play.style.display = 'none';
+        }
+
+        // value check
+        control.backward.style.opacity = '1';
+        control.previous.style.opacity = '1';
+        control.forward.style.opacity = '1';
+        control.next.style.opacity = '1';
+        control.down.style.opacity = '1';
+        control.up.style.opacity = '1';
+
+        if (value <= valueMin) {
+            control.backward.style.opacity = '0.5';
+            control.previous.style.opacity = '0.5';
+        } else if (value >= valueMax) {
+            control.forward.style.opacity = '0.5';
+            control.next.style.opacity = '0.5';
+        }
+        // speed check
+        if (speed <= speedMin) {
+            control.down.style.opacity = '0.5';
+        } else if (speed >= speedMax) {
+            control.up.style.opacity = '0.5';
+        }
+
+        if (isUpdate) {
+            this.onChange(this.value);
+        }
     }
 }
 

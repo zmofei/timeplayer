@@ -33,6 +33,7 @@ const Config = {
         hoverPointFill: 'white',
         hoverTipsBackground: 'rgba(0, 0, 0, 0.8)',
         hoverTipsText: 'white',
+        controlBtn: '#000',
     },
     darkColors: {
         scaleStart: '#bbb',
@@ -50,6 +51,7 @@ const Config = {
         hoverPointFill: '#eee',
         hoverTipsBackground: '#666',
         hoverTipsText: 'white',
+        controlBtn: '#fff',
     },
 }
 
@@ -79,6 +81,7 @@ class Timeplyer {
         hoverPointFill: string;
         hoverTipsBackground: string;
         hoverTipsText: string;
+        controlBtn: string;
     };
     private padding: number; // the padding of the right and left side
     private events: {
@@ -113,7 +116,16 @@ class Timeplyer {
     }
 
     private setupControl() {
-        const control = new Control();
+        const { controlBtn } = this.colors;
+        const control = new Control({
+            valueMax: this.dates.length - 1,
+            value: this.activeIndex,
+            colors: { controlBtn },
+            onChange: (value: number) => {
+                this.activeIndex = value;
+                this.draw();
+            },
+        });
         this.dom.appendChild(control.dom);
     }
 

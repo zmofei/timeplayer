@@ -55,6 +55,7 @@ window.onload = function () {
             hoverPointFill: 'rgba(0, 0, 0, 0.0)',
             hoverTipsBackground: 'rgba(0, 0, 0, 0.8)',
             hoverTipsText: 'white',
+            controlBtn: '#3dc347'
         }
     });
 
