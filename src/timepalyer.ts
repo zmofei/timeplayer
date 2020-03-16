@@ -1,3 +1,5 @@
+import Control from './control';
+
 interface TimeplyerOptions {
     width?: number,
     height?: number,
@@ -102,11 +104,17 @@ class Timeplyer {
         }
 
         // create canvas
+        this.setupControl();
         this.setupCanvas();
         this.setupEvens();
 
         // draw everything
         this.draw();
+    }
+
+    private setupControl() {
+        const control = new Control();
+        this.dom.appendChild(control.dom);
     }
 
     private setupCanvas() {
