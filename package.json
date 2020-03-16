@@ -2,7 +2,7 @@
   "name": "timeplayer",
   "version": "0.0.2",
   "description": "A time player/travel module",
-  "main": "index.js",
+  "main": "dist/timeplayer.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack-dev-server --open",
