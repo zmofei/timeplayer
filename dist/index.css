@@ -1,0 +1,22 @@
+body {
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 0 20px;
+}
+
+.demo {
+  border: 2px dashed rgba(0, 0, 0, 0.05);
+}
+
+code {
+  display: inline-block;
+  padding: 5px 10px;
+  background: #1d1e22;
+  border-radius: 4px;
+  color: #9a8297;
+}
+
+h2 {
+  border-bottom: 1px solid #f4f4f4;
+  padding-bottom: 10px;
+}
