@@ -20,6 +20,7 @@ module.exports = {
         filename: 'timeplayer.js',
         library: 'Timeplayer',
         libraryExport: 'default',
+        libraryTarget: 'umd',
         path: path.resolve(__dirname, 'dist'),
     },
     devServer: {
