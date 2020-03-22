@@ -276,6 +276,11 @@ class Control {
             this.onChange(this.value);
         }
     }
+
+    public setActive(value: number){
+        this.value = value;
+        this.draw();
+    }
 }
 
 export default Control;

@@ -62,7 +62,7 @@ class Timeplyer {
     private canvas: HTMLCanvasElement;  // the main canvas element
     private ctx: CanvasRenderingContext2D; // the context of the canvas
     private dates: string[]; // the dates we want to show
-    private activeIndex: number; // the indexof active data ;
+    private _activeIndex: number; // the indexof active data ;
     private hoverIndex: number | null; // the index
     private Config: { [key: string]: any };
     private colors: {
@@ -87,14 +87,13 @@ class Timeplyer {
     private events: {
         [key in Events]?: Function[];
     }
+    private control: Control;
 
     constructor(dom: HTMLElement, options: TimeplyerOptions) {
         this.dom = dom;
         this.dates = options.dates;
         this.Config = Object.assign({}, Config, options);
-        this.activeIndex = this.dates.length - 1;
-
-
+        this._activeIndex = this.dates.length - 1;
         const domStyle = getComputedStyle(this.dom);
         this.padding = this.Config.padding;
         this.height = options.height || Math.max(parseFloat(domStyle.height), this.Config.minHeight);
@@ -106,8 +105,10 @@ class Timeplyer {
             this.colors = options.theme === 'dark' ? this.Config.darkColors : this.Config.defaultColors;
         }
 
-        // create canvas
+        // set upcontrol
         this.setupControl();
+
+        // create canvas
         this.setupCanvas();
         this.setupEvens();
 
@@ -115,18 +116,19 @@ class Timeplyer {
         this.draw();
     }
 
+
     private setupControl() {
         const { controlBtn } = this.colors;
-        const control = new Control({
+        this.control = new Control({
             valueMax: this.dates.length - 1,
-            value: this.activeIndex,
+            value: this._activeIndex,
             colors: { controlBtn },
             onChange: (value: number) => {
                 this.activeIndex = value;
                 this.draw();
             },
         });
-        this.dom.appendChild(control.dom);
+        this.dom.appendChild(this.control.dom);
     }
 
     private setupCanvas() {
@@ -175,9 +177,7 @@ class Timeplyer {
             index = Math.min(dates.length, index);
             this.activeIndex = index;
 
-            (this.events['change'] || []).forEach(fn => {
-                fn(index, this.dates[index]);
-            });
+            this.control.setActive(index);
 
             this.draw();
         };
@@ -300,11 +300,11 @@ class Timeplyer {
     }
 
     private drawActive() {
-        const { width, dates, ctx, activeIndex, height, colors, padding } = this;
+        const { width, dates, ctx, _activeIndex, height, colors, padding } = this;
         const step = width / (dates.length - 1);
 
         ctx.beginPath();
-        ctx.arc(step * activeIndex + padding, height / 2, 4, 0, Math.PI * 2);
+        ctx.arc(step * _activeIndex + padding, height / 2, 4, 0, Math.PI * 2);
         ctx.lineWidth = 2;
         ctx.strokeStyle = colors.activePointStroke;
         ctx.fillStyle = colors.activePointFill;
@@ -316,7 +316,7 @@ class Timeplyer {
         ctx.font = "12px Orbitron";
         ctx.textBaseline = 'bottom';
         ctx.textAlign = 'center';
-        const textInfo = ctx.measureText(dates[activeIndex]);
+        const textInfo = ctx.measureText(dates[_activeIndex]);
 
         let bgLeft;
         let textX;
@@ -324,20 +324,20 @@ class Timeplyer {
         let bgOffset = 5;
         const rectWidth = textInfo.width + textPadding * 2;
 
-        if (activeIndex > dates.length / 2) {
+        if (_activeIndex > dates.length / 2) {
             ctx.textAlign = 'right';
-            bgLeft = step * activeIndex + padding - rectWidth - bgOffset;
-            textX = step * activeIndex + padding - bgOffset - textPadding;
+            bgLeft = step * _activeIndex + padding - rectWidth - bgOffset;
+            textX = step * _activeIndex + padding - bgOffset - textPadding;
         } else {
             ctx.textAlign = 'left';
-            bgLeft = step * activeIndex + padding + bgOffset;
+            bgLeft = step * _activeIndex + padding + bgOffset;
             textX = bgLeft + textPadding;
         }
         ctx.fillStyle = colors.activeTipsBackground;
         ctx.fillRect(bgLeft, height - 14, rectWidth, 14);
         //
         ctx.fillStyle = colors.activeTipsText;
-        ctx.fillText(dates[activeIndex], textX, height);
+        ctx.fillText(dates[_activeIndex], textX, height);
     }
 
     on(type: Events, fn: Function) {
@@ -351,6 +351,17 @@ class Timeplyer {
         if (index !== -1) {
             this.events[type].splice(index, 1);
         }
+    }
+
+    set activeIndex(index: number) {
+        this._activeIndex = index;
+        (this.events['change'] || []).forEach(fn => {
+            fn(index, this.dates[index]);
+        });
+    }
+
+    get activeIndex(): number {
+        return this._activeIndex;
     }
 
 }
