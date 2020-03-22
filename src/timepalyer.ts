@@ -116,7 +116,6 @@ class Timeplyer {
         this.draw();
     }
 
-
     private setupControl() {
         const { controlBtn } = this.colors;
         this.control = new Control({
@@ -159,7 +158,7 @@ class Timeplyer {
             const precent = offset / width;
             let index = Math.round(precent * (dates.length - 1));
             index = Math.max(0, index);
-            index = Math.min(dates.length, index);
+            index = Math.min(dates.length - 1, index);
             this.hoverIndex = index;
             this.draw();
         };
