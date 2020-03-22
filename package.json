@@ -1,6 +1,6 @@
 {
   "name": "timeplayer",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A time player/travel module",
   "main": "dist/timeplayer.js",
   "scripts": {
